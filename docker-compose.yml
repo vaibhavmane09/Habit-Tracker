@@ -1,0 +1,53 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: habit-db
+    environment:
+      POSTGRES_USER: habit_user
+      POSTGRES_PASSWORD: habit_pass
+      POSTGRES_DB: habit_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - habit-tracker-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U habit_user -d habit_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: habit-traker-be
+    container_name: habit-backend
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_URL: postgresql://habit_user:habit_pass@db:5432/habit_db
+      SECRET_KEY: dev-secret-change-this
+      JWT_SECRET_KEY: dev-jwt-secret-change-this
+    depends_on:
+      db:
+        condition: service_healthy    # ← waits until postgres is ready
+    networks:
+      - habit-tracker-net
+
+  frontend:
+    image: habit-tracker-fe
+    container_name: habit-frontend
+    ports:
+      - "8501:8501"
+    environment:
+      API_BASE_URL: http://backend:5000
+    depends_on:
+      - backend
+    networks:
+      - habit-tracker-net
+
+volumes:
+  pgdata:
+
+networks:
+  habit-tracker-net:
+    driver: bridge
