@@ -1,3 +1,4 @@
+#Added the backend CI workflow to the project. This workflow will run on every push to the main and develop branches, as well as on pull requests. It will check out the repository, set up Python, install dependencies, validate syntax, build a Docker image, run a container, and verify that the container is running correctly. Finally, it will clean up by stopping and removing the container.
 name: Backend CI
 
 on:
